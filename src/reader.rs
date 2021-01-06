@@ -128,7 +128,10 @@ mod tests {
         let buf = 10.5f32.to_le_bytes();
         let mut reader = Reader::new(&buf);
         // the bytes have to be exactly the same
-        assert_eq!(reader.read_float().unwrap().to_le_bytes(), 10.5f32.to_le_bytes());
+        assert_eq!(
+            reader.read_float().unwrap().to_le_bytes(),
+            10.5f32.to_le_bytes()
+        );
     }
 
     #[test]
