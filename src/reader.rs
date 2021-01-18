@@ -69,11 +69,24 @@ impl<'a> Reader<'a> {
     pub fn read_string(&mut self, len: usize) -> Result<String, Error> {
         // consume `len` bytes by returning them as a string slice
         let pos = self.data.position() as usize;
+        if pos + len > self.data.get_ref().len() {
+            return Err(Error::OutOfBounds);
+        }
         self.data.set_position((pos + len) as u64);
         match String::from_utf8(self.data.get_ref()[pos..pos + len].to_owned()) {
             Ok(v) => Ok(v),
             Err(_) => Err(Error::InvalidUtf8),
         }
+    }
+
+    #[inline]
+    pub fn read_bytes(&mut self, len: usize) -> Result<Vec<u8>, Error> {
+        let pos = self.data.position() as usize;
+        if pos + len > self.data.get_ref().len() {
+            return Err(Error::OutOfBounds);
+        }
+        self.data.set_position((pos + len) as u64);
+        Ok(self.data.get_ref()[pos..pos + len].to_vec())
     }
 }
 
@@ -137,9 +150,14 @@ mod tests {
     #[test]
     fn read_string() {
         let string = "testing";
+        let mut reader = Reader::new(&string.as_bytes());
+        assert_eq!(reader.read_string(string.len()).unwrap(), string);
+    }
 
-        let buf = string.as_bytes();
-        let mut reader = Reader::new(&buf);
-        assert_eq!(reader.read_string(buf.len()).unwrap(), "testing");
+    #[test]
+    fn read_bytes() {
+        let bytes = &100u64.to_le_bytes();
+        let mut reader = Reader::new(bytes);
+        assert_eq!(&reader.read_bytes(bytes.len()).unwrap()[..], bytes)
     }
 }

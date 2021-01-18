@@ -63,10 +63,15 @@ impl Writer {
         self.data.write_f32::<LittleEndian>(value).unwrap();
     }
 
-    /// Writes a slice
+    /// Writes a string
     #[inline]
     pub fn write_string(&mut self, value: &str) {
         self.data.extend_from_slice(value.as_bytes());
+    }
+
+    #[inline]
+    pub fn write_bytes(&mut self, value: &[u8]) {
+        self.data.extend_from_slice(value);
     }
 
     /// Returns the internal buffer, replacing it with an empty one
@@ -141,5 +146,13 @@ mod tests {
         writer.write_string("testing");
         let buf = writer.finish();
         assert_eq!(std::str::from_utf8(buf.as_slice()).unwrap(), "testing");
+    }
+
+    #[test]
+    fn write_bytes() {
+        let mut writer = Writer::with_capacity(8);
+        writer.write_bytes(&100u64.to_le_bytes());
+        let buf = writer.finish();
+        assert_eq!(100u64.to_le_bytes(), buf[0..8]);
     }
 }
